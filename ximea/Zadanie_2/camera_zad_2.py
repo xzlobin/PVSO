@@ -2,6 +2,11 @@ import numpy as np
 import cv2
 import glob
 import uuid
+import os
+import yaml
+from operator import methodcaller
+
+script_folder = os.path.dirname(os.path.realpath(__file__))
 
 ### runn this command first echo 0|sudo tee /sys/module/usbcore/parameters/usbfs_memory_mb  ###
 # create instance for first connected camera
@@ -26,7 +31,7 @@ try:
         cam.get_image(img)
         image = img.get_image_data_numpy()
         image_uid = uuid.uuid1()
-        cv2.imwrite(f'./img/img_{image_uid}.jpg', image)
+        cv2.imwrite(f'{script_folder}/img/img_{image_uid}.jpg', image)
         cv2.imshow("result", cv2.resize(image, (480, 480)))
 
     print('Data acquisition is done...')
@@ -39,7 +44,7 @@ try:
     print('Camera device has been closed.')
     cv2.destroyAllWindows()
 except ImportError:
-    print('xiapi not found, continue using ./img/*')
+    print('xiapi not found, continue using ./img/*.jpg')
 
 # termination criteria
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
@@ -57,17 +62,21 @@ objpoints = []
 imgpoints = []
 
 print('Starting calibration with ./img/*.jpg')
-images = glob.glob('./img/*.jpg')
+images = glob.glob(f'{script_folder}/img/*.jpg')
 print(f'Detected files:')
 for fname in images:
     print(f'- {fname}')
+
+if not fname:
+    print('No files found, terminating...')
+    raise SystemExit
 
 print(f'Starting detecting points in image plane...')
 for fname in images:
     img = cv2.imread(fname)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    # Find the chess board corners
+    # Find the chess board cornersexi
     ret, corners = cv2.findChessboardCorners(gray, shape, None)
     # If found, add object points, image points (after refining them)
     if ret:
@@ -84,4 +93,8 @@ cv2.destroyAllWindows()
 print(f'Points have been detected.\nStarting calibration...')
 ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
 
-print([ret, mtx, dist, rvecs, tvecs])
+cam_params = {"camera_mat" : mtx.tolist(), "distortion": dist.tolist(), "rotation": [i.tolist() for i in rvecs], "translation": [i.tolist() for i in tvecs]}
+
+print('Calibration is done, saving data in camera_parameters.yaml')
+with open(f'{script_folder}/camera_parameters.yaml', 'w') as f:
+    yaml.dump(cam_params, f)
