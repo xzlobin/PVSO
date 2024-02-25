@@ -20,18 +20,19 @@ maxRadius = 0
 img = np.zeros((480,480,4), np.uint8)
 cv2.namedWindow('Camera')
 
-def callback_factory(globa_var_name):
+def callback_factory(global_var_name):
     def callback(new_value):
-        globals()[globa_var_name] = new_value
+        globals()[global_var_name] = new_value
     return callback
 
-# create trackbars for color change
+# create trackbars for parameters change
 cv2.createTrackbar('minDist  ' , 'Camera', 0, 100, callback_factory('minDist'))
 cv2.createTrackbar('param1   ' , 'Camera', 0, 200, callback_factory('param1'))
 cv2.createTrackbar('param2   ' , 'Camera', 0, 200, callback_factory('param2'))
 cv2.createTrackbar('minRadius' , 'Camera', 0, 255, callback_factory('minRadius'))
 cv2.createTrackbar('maxRadius' , 'Camera', 0, 255, callback_factory('maxRadius'))
 
+# set trackbars' initial values
 cv2.setTrackbarPos('minDist  ' , 'Camera', minDist)
 cv2.setTrackbarPos('param1   ' , 'Camera', param1)
 cv2.setTrackbarPos('param2   ' , 'Camera', param2)
