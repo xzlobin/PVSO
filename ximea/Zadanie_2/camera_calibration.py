@@ -4,7 +4,6 @@ import glob
 import uuid
 import os
 import yaml
-from operator import methodcaller
 
 script_folder = os.path.dirname(os.path.realpath(__file__))
 
