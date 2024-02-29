@@ -37,12 +37,38 @@ cv2.setTrackbarPos('minDist  ' , 'Camera', minDist)
 cv2.setTrackbarPos('param1   ' , 'Camera', param1)
 cv2.setTrackbarPos('param2   ' , 'Camera', param2)
 
-while True:
-    cv2.imshow('Camera', img)
-    k = cv2.waitKey(1) & 0xFF
-    if k == 27:
-        break
-    print(minDist)
+try:
+    from ximea import xiapi
 
+    cam = xiapi.Camera()
 
-cv2.waitKey(0)
+    print('Opening first camera...')
+    cam.open_device()
+    # settings
+    cam.set_exposure(10000)
+    cam.set_param('imgdataformat', 'XI_RGB32')
+    cam.set_param('auto_wb', 1)
+    print('Exposure was set to %i us' % cam.get_exposure())
+
+    img = xiapi.Image()
+    print('Starting data acquisition...')
+    cam.start_acquisition()
+
+    while cv2.waitKey() != ord('q'):
+        cam.get_image(img)
+        image = img.get_image_data_numpy()
+
+        circles = cv2.HoughCircles(image,cv2.HOUGH_GRADIENT,1,minDist,
+                            param1=param1,param2=param2,minRadius=minRadius,maxRadius=minRadius)
+        
+        circles = np.uint16(np.around(circles))
+        for i in circles[0,:]:
+            # draw the outer circle
+            cv2.circle(image,(i[0],i[1]),i[2],(0,255,0),2)
+            # draw the center of the circle
+            cv2.circle(image,(i[0],i[1]),2,(0,0,255),3)
+
+        cv2.imshow("Camera", image)
+except ImportError:
+    print('xiapi not found')
+
