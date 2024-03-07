@@ -92,9 +92,12 @@ cv2.destroyAllWindows()
 print(f'Points have been detected.\nStarting calibration...')
 ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
 
+(height, width) = img.shape[:2]
+
 cam_params = {"camera_mat" : mtx.tolist(), 
               "distortion": dist.tolist(), 
               "rotation": [i.tolist() for i in rvecs], 
+              "image_shape": [width, height],
               "translation": [i.tolist() for i in tvecs]}
 
 print('Calibration is done, saving data in camera_parameters.yaml')
