@@ -11,6 +11,7 @@ opencv-python = "^4.9.0.80"
 PyYAML = "^6.0.1"
 uuid = "^1.30"
 ximea-py = "^4.27"
+numba = "^0.59.0"
 
 [tool.poetry.dev-dependencies]
 
