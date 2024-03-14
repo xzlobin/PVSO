@@ -20,7 +20,7 @@ newcameramtx, roi = cv2.getOptimalNewCameraMatrix(cam_params['camera_mat'], cam_
                                                   cam_params['image_shape'], 1, cam_params['image_shape'])
 
 minDist = 62
-param1 = 118
+param1 = 181
 param2 = 45
 minRadius = 0
 maxRadius = 0
@@ -68,12 +68,21 @@ try:
 
     stored_method = cam.get_image
     while cv2.waitKey(1) != ord('q'):
-        cam.get_image(img)
+        try:
+            cam.get_image(img)
+        except Exception as e:
+            print(f"Camera error: {e}")
+            print("Skipping frame...")
+            time.sleep(1/30)
+            continue
+
         image = img.get_image_data_numpy()
         image = cv2.undistort(image, cam_params['camera_mat'], 
                               cam_params['distortion'], None, newcameramtx)
+        x, y, w, h = roi
+        image = image[y:y+h, x:x+w]
+
         image = hough_resize(image)
-        
         image_gray = cv2.cvtColor(image,cv2.COLOR_BGRA2GRAY)
         circles = cv2.HoughCircles(image_gray,cv2.HOUGH_GRADIENT,1,minDist=minDist,circles=None,
                             param1=param1,param2=param2,minRadius=minRadius,maxRadius=minRadius)
