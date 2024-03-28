@@ -22,8 +22,10 @@ def main(argv):
    if not inputfile: inputfile="./ximea/Zadanie_3/cheetah.jpg"
    img = cv2.imread(inputfile)
    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-   kernel = LoG.Laplacian(signature=(2,2)).build()
-   res_img = kernel.apply_to(gray.astype('float'))
+   kernel = LoG.Laplacian(signature=(1,1)).build()
+   gauss  = LoG.Gaussian(shape=(5,5), variance=2).build()
+   res_img = kernel.jit_apply_to(gray.astype('float'))
+   res_img = gauss.jit_apply_to(res_img)
    res_img = cv2.normalize(res_img, None, 0.0, 1.0, cv2.NORM_MINMAX)
    if not outputfile:
       cv2.imshow('result', res_img)

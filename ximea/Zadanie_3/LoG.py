@@ -1,35 +1,49 @@
-import numpy
-import copy
+import numpy as np
 import numba
-from numba.experimental import jitclass
-spec = [
-    ('_shape',  numba.types.UniTuple(numba.float64, 2) ),
-    ('_raw',    numba.float64[:]), 
-    ('_output', numba.float64[:])
-]
 
-#@jitclass(spec)
+@numba.njit
+def _apply_raw_kernel_jit(_ker: numba.float64[:, :], _dat: numba.float64[:, :], 
+                          _ker_shape: numba.types.UniTuple(numba.uint64, 2),
+                          _dat_shape: numba.types.UniTuple(numba.uint64, 2)):
+    out = np.zeros(_dat_shape, dtype=np.float64)
+    c_k = _ker_shape[0] // 2
+    c_l = _ker_shape[1] // 2
+    for i in range(_dat_shape[0]):
+            for j in range(_dat_shape[1]):
+                out[i, j] = 0.0
+                for l in range(_ker_shape[0]):
+                    for k in range(_ker_shape[1]):
+                        ii = i - c_k + k
+                        jj = j - c_l + l
+                        if ii < 0 or jj < 0 or ii >= _dat_shape[0] or jj >= _dat_shape[1]: continue
+                        out[i, j] += _ker[l,k]*_dat[ii][jj]
+    return out
+
+
 class Kernel:
     def __init__(self, mat_like):
-        self._raw = numpy.array(())
+        self._raw = np.array(())
         row_len = len(mat_like[0])
         row_count = 0
         for row in mat_like:
             assert len(row) == row_len, "Error! Not homogeneous dimensions!"
-            #self._raw.extend(row)
-            self._raw = numpy.append(self._raw, row)
+            self._raw = np.append(self._raw, row)
             row_count += 1
         self._shape = (row_count, row_len)
 
     def apply_to(self, mat_like):
-        self._output = numpy.copy(mat_like)
-        n = self._output.shape[0]
-        m = self._output.shape[1]
-        for i in range(n):
-            for j in range(m):
-                self._output[i][j] = self._apply_inplace(mat_like, anchor=(i,j))
+        self._output = np.copy(mat_like)
+        shp = np.shape(self._output)
+        for i in range(shp[0]):
+            for j in range(shp[1]):
+                self._output[i, j] = self._apply_inplace(mat_like, anchor=(i,j))
 
         return self._output
+    
+    def jit_apply_to(self, mat_like):
+        _data = np.array(mat_like)
+        _kernel = self._raw.reshape(self._shape)
+        return _apply_raw_kernel_jit(_kernel, _data, _kernel.shape, _data.shape)
     
     @staticmethod
     def get_zero(m,n):
@@ -48,6 +62,10 @@ class Kernel:
                 _buffer += self[i,j]*mat_like[ii][jj]
 
         return _buffer
+    
+    def normalize(self):
+        self._raw = self._raw/self._raw.sum()
+        return self
     
     def __len__(self):
         return self._shape[0]*self._shape[1]
@@ -91,12 +109,12 @@ class Kernel:
             self._raw[(rl*i):(rl*i+rl)] = value
 
          
-#    def __repr__(self):
-#        l = []
-#        rc, _ = self._shape
-#        for i in range(rc):
-#            l.append(self[i].tolist())
-#        return f"Kernel({l})"
+    def __repr__(self):
+        l = []
+        rc, _ = self._shape
+        for i in range(rc):
+            l.append(self[i].tolist())
+        return f"Kernel({l})"
 
 
 class Laplacian:
@@ -117,10 +135,27 @@ class Laplacian:
     
     def __repr__(self):
         return f"Laplacian({self._m},{self._n})"
-         
-#import numpy as np
-#mat = np.array([[1,2],[3,4]])
-#ker_test = np.array([[1,2,3],[4,5,6],[7,8,9]])
-#k = Kernel(ker_test)
-#res = k.apply_to(mat)
-#print(res)
+    
+class Gaussian:
+    def __init__(self, shape=(5,5), variance=1):
+        assert shape[0] > 0 and shape[1] > 0, "Error! Cannot use zero or negative shape!"
+        self._shape = shape
+        self._var = variance
+
+    def build(self):
+        K = Kernel.get_zero(self._shape[0], self._shape[1])
+        c_i = self._shape[0] // 2
+        c_j = self._shape[1] // 2
+
+        for i in range(self._shape[0]):
+            for j in range(self._shape[1]):
+                x = 2*(i - c_i)/self._shape[0]
+                y = 2*(j - c_j)/self._shape[1]
+                K[i,j]=np.exp(-(x**2+y**2)/(2*self._var**2))
+
+        return K.normalize()
+    
+    def __repr__(self):
+        return f"Gaussian1({self._shape[0]},{self._shape[1]})"
+    
+
