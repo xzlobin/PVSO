@@ -3,8 +3,8 @@ import numba
 
 @numba.njit
 def _apply_raw_kernel_jit(_ker: numba.float64[:, :], _dat: numba.float64[:, :], 
-                          _ker_shape: numba.types.UniTuple(numba.uint64, 2),
-                          _dat_shape: numba.types.UniTuple(numba.uint64, 2)):
+                          _ker_shape: numba.types.UniTuple(numba.uint64, 2),  # type: ignore
+                          _dat_shape: numba.types.UniTuple(numba.uint64, 2)): # type: ignore
     out = np.zeros(_dat_shape, dtype=np.float64)
     c_k = _ker_shape[0] // 2
     c_l = _ker_shape[1] // 2
@@ -16,7 +16,7 @@ def _apply_raw_kernel_jit(_ker: numba.float64[:, :], _dat: numba.float64[:, :],
                         ii = i - c_k + k
                         jj = j - c_l + l
                         if ii < 0 or jj < 0 or ii >= _dat_shape[0] or jj >= _dat_shape[1]: continue
-                        out[i, j] += _ker[l,k]*_dat[ii][jj]
+                        out[i, j] += _ker[l,k]*_dat[ii, jj]
     return out
 
 
@@ -48,6 +48,10 @@ class Kernel:
     @staticmethod
     def get_zero(m,n):
         return Kernel([[0]*n]*m)
+    
+    @staticmethod
+    def get_ones(m,n):
+        return Kernel([[1]*n]*m)
     
     def _apply_inplace(self, mat_like, anchor=(0,0)):
         rc, rl = self._shape
@@ -149,13 +153,25 @@ class Gaussian:
 
         for i in range(self._shape[0]):
             for j in range(self._shape[1]):
-                x = 2*(i - c_i)/self._shape[0]
-                y = 2*(j - c_j)/self._shape[1]
+                x = 3*2*(i - c_i)/self._shape[0]
+                y = 3*2*(j - c_j)/self._shape[1]
                 K[i,j]=np.exp(-(x**2+y**2)/(2*self._var**2))
 
         return K.normalize()
     
     def __repr__(self):
-        return f"Gaussian1({self._shape[0]},{self._shape[1]})"
+        return f"Gaussian({self._shape[0]},{self._shape[1]} | variance={self._var})"
+    
+class Mean:
+    def __init__(self, shape=(5,5)):
+        assert shape[0] > 0 and shape[1] > 0, "Error! Cannot use zero or negative shape!"
+        self._shape = shape
+
+    def build(self):
+        K = Kernel.get_ones(self._shape[0], self._shape[1])
+        return K.normalize()
+    
+    def __repr__(self):
+        return f"Mean({self._shape[0]},{self._shape[1]})"
     
 
