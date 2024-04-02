@@ -13,6 +13,7 @@ uuid = "^1.30"
 ximea-py = "^4.27"
 numba = "^0.59.0"
 matplotlib = "^3.8.3"
+pyqt6 = "^6.6.1"
 
 [tool.poetry.dev-dependencies]
 
