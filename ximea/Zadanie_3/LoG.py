@@ -20,6 +20,13 @@ def _apply_raw_kernel_jit(_ker: numba.float64[:, :], _dat: numba.float64[:, :],
     return out
 
 
+def normalize(img):
+    _max = img.max()
+    _min = img.min()
+    return (img.astype(np.float64) + _min)/(_max - _min)
+
+
+
 class Kernel:
     def __init__(self, mat_like):
         self._raw = np.array(())
@@ -30,17 +37,8 @@ class Kernel:
             self._raw = np.append(self._raw, row)
             row_count += 1
         self._shape = (row_count, row_len)
-
-    def apply_to(self, mat_like):
-        self._output = np.copy(mat_like)
-        shp = np.shape(self._output)
-        for i in range(shp[0]):
-            for j in range(shp[1]):
-                self._output[i, j] = self._apply_inplace(mat_like, anchor=(i,j))
-
-        return self._output
     
-    def jit_apply_to(self, mat_like):
+    def apply_to(self, mat_like):
         _data = np.array(mat_like)
         _kernel = self._raw.reshape(self._shape)
         return _apply_raw_kernel_jit(_kernel, _data, _kernel.shape, _data.shape)
@@ -52,20 +50,6 @@ class Kernel:
     @staticmethod
     def get_ones(m,n):
         return Kernel([[1]*n]*m)
-    
-    def _apply_inplace(self, mat_like, anchor=(0,0)):
-        rc, rl = self._shape
-        c_i = rc // 2
-        c_j = rl // 2
-        _buffer = 0
-        for i in range(rc):
-            for j in range(rl):
-                ii = anchor[0] - c_i + i
-                jj = anchor[1] - c_j + j
-                if ii < 0 or jj < 0 or ii >= len(mat_like) or jj >= len(mat_like[0]): continue
-                _buffer += self[i,j]*mat_like[ii][jj]
-
-        return _buffer
     
     def normalize(self):
         self._raw = self._raw/self._raw.sum()
