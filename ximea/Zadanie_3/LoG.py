@@ -5,10 +5,10 @@ import numba
 def _apply_raw_kernel_jit(_ker: numba.float64[:, :], _dat: numba.float64[:, :], 
                           _ker_shape: numba.types.UniTuple(numba.uint64, 2),  # type: ignore
                           _dat_shape: numba.types.UniTuple(numba.uint64, 2)): # type: ignore
-    """Function used to make 2D convolution of _ker and _dat. 
+    """Function used to provide 2D convolution of _ker and _dat. 
     @numba.njit decorator used to compile this code runtime and speed up execution.
     _ker - 2D array of a convolution kernel
-    _dat - 2D array of a data (an grey scale image)
+    _dat - 2D array of a data (a grey scale image)
     _ker_shape, _dat_shape - shapes of the corresponding arrays
     """
 
