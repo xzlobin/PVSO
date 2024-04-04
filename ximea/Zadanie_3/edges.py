@@ -5,7 +5,7 @@ import cv2
 import LoG
 
 
-def find_edges(img, threshold=0.20, variance_thr = 0.07, background_extraction_thr=0.07):
+def find_edges(img, threshold=0.2, variance_thr = 0.07, background_extraction_thr=0.05):
    """Function to detect edges
    Parameters
    ----------
@@ -21,8 +21,8 @@ def find_edges(img, threshold=0.20, variance_thr = 0.07, background_extraction_t
 
    # building Kernels for Laplacian, Gaussian and Mean Blur to apply to an image.
    # realization is in the LoG.py module
-   laplace = LoG.Laplacian(signature=(3,3)).build()
-   gauss   = LoG.Gaussian(shape=(7,7), variance=2).build()
+   laplace = LoG.Laplacian(signature=(2,2)).build()
+   gauss   = LoG.Gaussian(shape=(7,7), variance=1).build()
    mean    = LoG.Mean(shape=(5,5)).build()
    
    # applying gaussian to an image
@@ -104,7 +104,7 @@ def main(argv):
          outputfile = arg
    
 
-   if not inputfile: inputfile="./ximea/Zadanie_3/cheetah.jpg"
+   if not inputfile: inputfile="./ximea/Zadanie_3/images/tiger.png"
    
    # reading image from file
    img = cv2.imread(inputfile)
