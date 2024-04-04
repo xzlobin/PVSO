@@ -34,6 +34,8 @@ cv2.setTrackbarPos('param2   ' , 'Camera', int(background_extraction_thr*1000))
 
 def resize(image):
     return cv2.resize(image, (800,800))
+def win_resize(image):
+    return cv2.resize(image, (480,480))
 try:
     from ximea import xiapi
 
@@ -66,7 +68,7 @@ try:
         image_gray = cv2.cvtColor(image,cv2.COLOR_BGRA2GRAY)
         res = edges.find_edges(image_gray, threshold=threshold, variance_thr=variance_thr, background_extraction_thr=background_extraction_thr)
 
-        cv2.imshow("Camera", image)
+        cv2.imshow("Camera", win_resize(res))
 
         keyp = cv2.waitKey(1)
         if keyp == ord('p'):
