@@ -104,7 +104,7 @@ def main(argv):
          outputfile = arg
    
 
-   if not inputfile: inputfile="./ximea/Zadanie_3/images/tiger.png"
+   if not inputfile: inputfile="./ximea/Zadanie_3/images/cheetah.jpg"
    
    # reading image from file
    img = cv2.imread(inputfile)

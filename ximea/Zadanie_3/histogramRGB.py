@@ -1,7 +1,7 @@
 import cv2
 import matplotlib.pyplot as plt
 
-img_path = "./ximea/Zadanie_3/cheetah.jpg"
+img_path = "./ximea/Zadanie_3/images/cheetah.jpg"
 
 img = cv2.imread(img_path)
 
