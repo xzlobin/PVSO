@@ -9,6 +9,8 @@ def filter_nan(pcd):
     pcd_points = np.array(pcd.points)
     pcd_colors = np.array(pcd.colors)
     row_selector = ~np.isnan(pcd_points).any(axis=1)
+    if row_selector.all():
+        return pcd, 0
     pcd_points = pcd_points[row_selector, :]
     pcd_colors = pcd_colors[row_selector, :]
 
