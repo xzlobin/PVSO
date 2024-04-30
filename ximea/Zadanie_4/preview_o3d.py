@@ -6,6 +6,10 @@ import numpy as np
 import sys
 
 def filter_nan(pcd):
+    """
+    Function to filter out NaN values from the point cloud.
+    Returns filtered (pcd, amount of NaNs points).
+    """
     pcd_points = np.array(pcd.points)
     pcd_colors = np.array(pcd.colors)
     row_selector = ~np.isnan(pcd_points).any(axis=1)
