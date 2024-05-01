@@ -28,4 +28,8 @@ colors = plt.get_cmap("tab20")(labels / (mlabel if mlabel > 0 else 1))
 colors[labels < 0] = 0
 pcd.colors = o3d.utility.Vector3dVector(colors[:, :3])
 
+os.makedirs(os.path.join(script_folder, "results"), exist_ok=True)
+name = os.path.basename(file).replace(".pcd", "_dbscan_clusters.pcd")
+o3d.io.write_point_cloud(os.path.join(script_folder, "results", name), pcd)
+
 o3d.visualization.draw_geometries([pcd])
